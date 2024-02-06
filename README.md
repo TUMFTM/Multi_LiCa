@@ -35,10 +35,10 @@ The bare minimum requirement for our tool is a Linux-based OS and Docker, as we 
 You do not need to build anything locally, but you are free to do so as described in the following section.  
 For the local build, you will need ROS 2 - humble, Python 3.10 with opend3d, scipy, ros2_numpy and pandas (optional).
 
-<h2>Installation</h2>
+<h2>Installation and Usage</h2>
 
-<details>
-<summary><h3>Docker</h3></summary>
+<h3>🐋 Docker </h3> 
+
 1. Build the Docker image:
 
     ```
@@ -50,10 +50,8 @@ For the local build, you will need ROS 2 - humble, Python 3.10 with opend3d, sci
     ```
     ./docker/run_docker.sh
     ```
-</details>
+<h3>🖥 Local Build</h3>
 
-<details>
-<summary> <h3> Local </h3> </summary>
 1. Install ROS2 humble (might work with other ROS2 distributions but wasn't tested):
 https://docs.ros.org/en/humble/Installation.html 
 
@@ -92,13 +90,21 @@ https://docs.ros.org/en/humble/Installation.html
     ```
     ros2 launch multi_lidar_calibrator calibration.launch.py
     ```
-</details>
+  
+  
+<h2> Configuration </h2>
 
-<h2>LiDAR-to-Ground/Base Calibration</h2>
-In addition to LiDAR-to-LiDAR calibration, you can perform target LiDAR-to-ground/base calibration if your x,y translation and roll, yaw rotation are precisely known.
+- Configure `config/params.yaml` to fit your data. Depending on the application, you may need to specify the initial transformations for LiDARs, paths to .pcd files, or LiDAR topic names. You may also change GICP and RANSAC parameters.
 
+- In addition to LiDAR-to-LiDAR calibration, you can perform target LiDAR-to-ground/base calibration if your x,y translation and roll, yaw rotation are precisely known.  
+If you are using to-base calibration, you may choose a URDF file to save the calibration so that it can be directly used in your ROS robot-state-publisher.
 
+- When running in a container, ensure that your local and container environments have the same ROS_DOMAIN_ID. If not, set it to be the same with `export ROS_DOMAIN_ID=<ID>`.
+
+- When using ROS 2, verify that the transformation guess is published on the `/tf_static` topic and that the data is published for all specified LiDARs.
+  
+  
 <h2>Code coming soon!</h2>
 
-<h2>Citation</h2>
-If you use this framework for any academic work, please cite our original paper.
+<!-- <h2>📄 Citation</h2>
+If you use this framework for any academic work, please cite our original paper. -->
