@@ -1,0 +1,80 @@
+/**:
+  ros__parameters:
+    # number of point clouds for each lidar for the calibration. Larger number might improve robustness
+    # when > 1, the environment and LiDARs should be static. In general, calibration is (much) worse if dynamic.
+    frame_count: 5
+    # number of complete calibration runs (for testing purposes)
+    runs_count: 1
+
+    # when enabled,finds point clouds with most overlap automatically
+    # this method is more general and might be more precise but is slower
+    use_fitness_based_calibration: false
+
+    # Topics for all lidars
+    lidar_topics: [/sensing/lidar/top/rectified/pointcloud, /rslidar_points]
+    # topic for TFMessage
+    tf_topic: /tf_static
+    visualize: false
+    # read transfromations to base from a given table instead of TF message
+    read_tf_from_table: true
+    table_degrees: true
+    # table of lidar name (frame_id in ROS), xyz translation [m], rpy rotation [deg/rad]
+    velodyne_top: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    rslidar: [0.0, 0.000, 0.0, 0.0, 0.0, 0.0]
+
+    read_pcds_from_file: false
+    # path for point clouds in pcd format. Structure: <lidar_name>/<pcd>/<filename1><filename2>...
+    # (path relative to the dir with multi_lidar_calibrator.py)
+    # LiDAR transformations must be defined in this file when reading pcds from files
+    pcd_directory: /../data/pcds/
+
+    base_to_ground_z: 0.338 # assumes base is directly above the origin
+
+    # when not empty, write resultig transformations into an urdf file
+    # assumes that joints in the file have nane in for of <lidar_name>_joint
+    # urdf_path: "/home/andrii/TUM/thesis/SensorCalibration/ros2_ws/src/edgar/edgar_state_publisher/urdf/edgar.description.states.urdf"
+
+    # Frame id of the master lidar. Firstly, other LiDARs are calibrated w.r.t. to this
+    target_frame_id: velodyne_top
+    # target_frame_id: "lidar_ouster_right"
+    # Frame id for the base frame relative to which the LiDARs are calibrated in the end
+    base_frame_id: rear_axle_center
+    # when true, calibrate target LiDAR (z, and pitch) to the base frame.
+    calibrate_target: false
+    # when true, calibrate all LiDARs to the base frame isntead of to other LiDARs
+    calibrate_to_base: false
+
+    # calibration results are stored here (path relative to the dir with multi_lidar_calibrator.py)
+    default_output_dir: /../output/
+
+    # parameters for the GICP algorithm
+    # Maximum correspondence points-pair distance.
+    max_corresp_dist: 1.0
+    # ICP algorithm stops if the relative change of fitness and rmse hit relative_fitness
+    # and relative_rmse individually, or the iteration number exceeds max_iteration
+    rel_fitness: 0.0000001
+    rel_rmse: 0.0000001
+    max_iterations: 100
+    # just a constant. Changing it too much will probably lead to poor results.
+    epsilon: 0.005
+    # makes GICP faster by reducing number of points but might reduce accuracy
+    # voxel size [m] in which the cloud is downampled. Highly recommended when using RANSAC
+    # activated if > 0.0
+    voxel_size: 0.05
+    # makes GICP faster by removing ground from a cloud but might reduce accuracy
+    remove_ground_flag: false
+    # calibrations with fitness score <= threshold are considered unsuccessful (not enough overlap)
+    fitness_score_threshold: 0.2
+
+    # parameters for RANSAC. RANSAC is used to calibrate target LiDAR to the ground plane
+    # or to speed up GICP by removing ground plane from the point cloud.
+    # max distance for the point inlier to plane
+    distance_threshold: 0.1
+    # number of points used to define a plane
+    ransac_n: 10
+    # number of iterations of RANSAC. Larger number => larger probability to find a better plane
+    num_iterations: 2000
+    # voxel size for RANSAC for pitch calibration
+    r_voxel_size: 0.1
+    # number of reruns of RANSAC for better robustness
+    r_runs: 10

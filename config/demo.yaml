@@ -1,0 +1,32 @@
+/**:
+  ros__parameters:
+    visualize: true
+
+    # when enabled,finds point clouds with most overlap automatically
+    # this method is more general and might be more precise but is slower
+    use_fitness_based_calibration: false
+
+    # Topics for all lidars
+    lidar_topics: [lidar_1, lidar_2, lidar_3]
+
+    # read initial_guess to base from a given table
+    # table of lidar name, xyz translation [m], rpy rotation [deg]
+    lidar_1: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    lidar_2: [0.0, 0.0, 0.0, 0.0, 0.0, 90.0]
+    lidar_3: [0.0, 0.0, 0.0, 0.0, 0.0, -90.0]
+
+    # path for point clouds in pcd format. Structure: pcd_directory/<lidar_name>.pcd
+    pcd_directory: /../data/demo/
+
+    base_to_ground_z: 0.338 # assumes base is directly above the origin
+
+    # logging output
+    results_file: results.txt
+
+    # when true, calibrate target LiDAR (z, and pitch) to the base frame.
+    calibrate_target: true
+    # when true, calibrate all LiDARs to the base frame isntead of to other LiDARs
+    calibrate_to_base: true
+
+    # calibration results are stored here (path relative to the dir with multi_lidar_calibrator.py)
+    default_output_dir: /../output/

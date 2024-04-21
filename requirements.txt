@@ -1,0 +1,5 @@
+open3d
+scipy
+ros2_numpy
+pandas
+setuptools==58.2
