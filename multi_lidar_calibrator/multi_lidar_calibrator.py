@@ -62,6 +62,8 @@ class MultiLidarCalibrator(Node):
             os.path.dirname(os.path.realpath(__file__))
             + self.declare_parameter("out_dir", "/../output/").value
         )
+        if not os.path.exists(self.output_dir):
+            os.makedirs(self.output_dir)
         self.pcd_in_dir = (
             os.path.dirname(os.path.realpath(__file__))
             + self.declare_parameter("pcd_directory", "/../data/demo/").value
