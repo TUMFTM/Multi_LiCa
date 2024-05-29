@@ -13,7 +13,7 @@ from tf2_msgs.msg import TFMessage
 
 from .calibration.Calibration import *
 
-
+ 
 def get_transfrom(tf_msg: TFMessage, child_frame_id: str) -> Transform:
     """
     Extract the transform for a specific child frame from a TFMessage.
@@ -45,15 +45,15 @@ class MultiLidarCalibrator(Node):
         self.tf_topic = self.declare_parameter("tf_topic", "/tf_static").value
         self.visualize = self.declare_parameter("visualize", False).value
         self.use_fitness_based_calibration = self.declare_parameter(
-            "use_fitness_based_calibration", False
+            "use_fitness_based_calibration", True
         ).value
         self.read_tf_from_table = self.declare_parameter("read_tf_from_table", True).value
         self.table_degrees = self.declare_parameter("table_degrees", True).value
         self.topic_names = self.declare_parameter("lidar_topics", ["lidar_1, lidar_2"]).value
         self.target_lidar = self.declare_parameter("target_frame_id", "lidar_1").value
         self.base_frame_id = self.declare_parameter("base_frame_id", "base_link").value
-        self.calibrate_target = self.declare_parameter("calibrate_target", True).value
-        self.calibrate_to_base = self.declare_parameter("calibrate_to_base", True).value
+        self.calibrate_target = self.declare_parameter("calibrate_target", False).value
+        self.calibrate_to_base = self.declare_parameter("calibrate_to_base", False).value
         self.base_to_ground_z = self.declare_parameter("base_to_ground_z", 0.0).value
         self.frame_count = self.declare_parameter("frame_count", 1).value
         self.runs_count = self.declare_parameter("runs_count", 1).value
