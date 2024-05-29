@@ -12,8 +12,9 @@ def generate_launch_description():
     pkg_share = get_package_share_directory("multi_lidar_calibrator")
     parameter_file = os.path.join(pkg_share, "config", "demo.yaml")
     output = os.path.join(pkg_share, "output")
+
     output_dir_arg = DeclareLaunchArgument(
-        "out_dir", default_value=output, description="Path to the output directory."
+        "output_dir", default_value=output, description="Path to the output directory."
     )
 
     params_declare = DeclareLaunchArgument(
@@ -23,6 +24,7 @@ def generate_launch_description():
     )
 
     parameter_file_launch_config = LaunchConfiguration("parameter_file")
+    output_dir_launch_config = LaunchConfiguration("output_dir")
 
     return LaunchDescription(
         [
@@ -32,7 +34,8 @@ def generate_launch_description():
                 package="multi_lidar_calibrator",
                 executable="multi_lidar_calibrator",
                 name="multi_lidar_calibration_node",
-                parameters=[parameter_file_launch_config],
+                parameters=[parameter_file_launch_config,
+                            output_dir_launch_config],
                 output="screen",
             ),
         ]

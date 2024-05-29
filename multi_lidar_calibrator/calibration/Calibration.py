@@ -87,7 +87,6 @@ def modify_urdf_joint_origin(file_path: str, joint_name: str, tf_matrix: Transfo
                 raise Exception("joint has no origin to be modified")
     tree.write(file_path, xml_declaration=True)
 
-
 class Calibration:
     """
     Handles initial and GICP calibration between source and target lidars.
@@ -105,6 +104,7 @@ class Calibration:
         distance_threshold=0.1,
         ransac_n=3,
         num_iterations=1000,
+        crop_cloud=20,
     ):
         """
         Initialize a Calibration object.
@@ -131,6 +131,7 @@ class Calibration:
         self.distance_threshold = distance_threshold
         self.ransac_n = ransac_n
         self.num_iterations = num_iterations
+        self.crop_cloud = crop_cloud
         self.initial_transformation = self.compute_initial_transformation()
         self.calibrated_transformation = None
         self.reg_p2l = None
@@ -155,36 +156,36 @@ class Calibration:
             raise Exception("no target point cloud")
 
         # Create copies of the source and target point clouds
-        source_pcd = o3d.geometry.PointCloud(self.source.pcd)
+        source_pcd = o3d.geometry.PointCloud(self.source.pcd.transform(transformation_matrix))
         target_pcd = o3d.geometry.PointCloud(self.target.pcd)
 
-        # FPFH
-        # fpfh_voxel_size = 0.5
-        # source_fpfh = self.preprocess_point_cloud(source_pcd, fpfh_voxel_size)
-        # target_fpfh = self.preprocess_point_cloud(target_pcd, fpfh_voxel_size)
-        # distance_threshold = fpfh_voxel_size * 10
-        # reg_fpfh = o3d.pipelines.registration.registration_fgr_based_on_feature_matching(
-        #     source_pcd, target_pcd, source_fpfh, target_fpfh,
-        #     o3d.pipelines.registration.FastGlobalRegistrationOption(
-        #         use_absolute_scale=True,
-        #         maximum_correspondence_distance=distance_threshold))
-        # print("FPFH Trafo:")
-        # print(reg_fpfh.transformation)
-        # self.initial_transformation = TransformationMatrix.from_matrix(reg_fpfh.transformation)
+        method = 'TEASER'
+        if method == 'FPFH':
+            fpfh_voxel_size = 0.5
+            source_fpfh = self.preprocess_point_cloud(source_pcd, fpfh_voxel_size)
+            target_fpfh = self.preprocess_point_cloud(target_pcd, fpfh_voxel_size)
+            distance_threshold = fpfh_voxel_size * 10
+            reg_fpfh = o3d.pipelines.registration.registration_fgr_based_on_feature_matching(
+                source_pcd, target_pcd, source_fpfh, target_fpfh,
+                o3d.pipelines.registration.FastGlobalRegistrationOption(
+                    use_absolute_scale=True,
+                    maximum_correspondence_distance=distance_threshold))
+            print("FPFH Trafo:")
+            print(reg_fpfh.transformation)
+            self.initial_transformation = TransformationMatrix.from_matrix(reg_fpfh.transformation)
         
-        # RANSAC
-        voxel_size = 0.35
-        # num_iterations = 20
-        # distance_threshold = voxel_size * 20
-        # transformations = [self.run_ransac_registration(source_pcd, target_pcd, voxel_size, distance_threshold) for _ in range(num_iterations)]
-        # median_trans = self.median_transformation(transformations)
-        # self.initial_transformation = TransformationMatrix.from_matrix(median_trans)
-        # print("RANSAC")
-        # print(median_trans)
-        # print("TEASER++")
-        teaser_transformation = self.teaser_initial_registration(source_pcd, target_pcd, voxel_size)
-        print(teaser_transformation)
-        self.initial_transformation = TransformationMatrix.from_matrix(teaser_transformation)
+        elif method == 'RANSAC':
+            voxel_size = 0.35
+            num_iterations = 20
+            distance_threshold = voxel_size * 20
+            transformations = [self.run_ransac_registration(source_pcd, target_pcd, voxel_size, distance_threshold) for _ in range(num_iterations)]
+            median_trans = self.median_transformation(transformations)
+            self.initial_transformation = TransformationMatrix.from_matrix(median_trans)
+
+        elif method == 'TEASER':
+            voxel_size = 0.35
+            teaser_transformation = self.teaser_initial_registration(source_pcd, target_pcd, voxel_size)
+            self.initial_transformation = TransformationMatrix.from_matrix(teaser_transformation)
         return self.initial_transformation
     
     def teaser_initial_registration(self, source_pcd, target_pcd, voxel_size):
@@ -197,11 +198,10 @@ class Calibration:
         source_down = np.asarray(source_down.points).T
         target_down = np.asarray(target_down.points).T
 
-
         corrs_A, corrs_B = self.find_correspondences(
             source_fpfh, target_fpfh, mutual_filter=True)
-        A_corr = source_down[:,corrs_A] # np array of size 3 by num_corrs
-        B_corr = target_down[:,corrs_B] # np array of size 3 by num_corrs
+        A_corr = source_down[:,corrs_A]
+        B_corr = target_down[:,corrs_B]
 
         teaser_solver = self.get_teaser_solver(voxel_size)
         teaser_solver.solve(A_corr,B_corr)
@@ -409,8 +409,9 @@ class Calibration:
 
     def preprocess_point_cloud(self, pcd, voxel_size):
         pcd_down = pcd
-        # bbox = o3d.geometry.AxisAlignedBoundingBox(min_bound=(-20, -20, -20), max_bound=(20, 20, 20))
-        # pcd_down = pcd.crop(bbox)
+        bbox = o3d.geometry.AxisAlignedBoundingBox(min_bound=(-self.crop_cloud, -self.crop_cloud, -self.crop_cloud),
+                                                    max_bound=(self.crop_cloud, self.crop_cloud, self.crop_cloud))
+        pcd_down = pcd.crop(bbox)
         pcd_down = pcd_down.voxel_down_sample(voxel_size)
         # pcd_down = self.source.remove_ground_plane(
         #         pcd, self.distance_threshold, self.ransac_n, self.num_iterations

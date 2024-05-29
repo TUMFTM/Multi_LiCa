@@ -45,7 +45,7 @@ class MultiLidarCalibrator(Node):
         self.tf_topic = self.declare_parameter("tf_topic", "/tf_static").value
         self.visualize = self.declare_parameter("visualize", False).value
         self.use_fitness_based_calibration = self.declare_parameter(
-            "use_fitness_based_calibration", True
+            "use_fitness_based_calibration", False
         ).value
         self.read_tf_from_table = self.declare_parameter("read_tf_from_table", True).value
         self.table_degrees = self.declare_parameter("table_degrees", True).value
@@ -57,10 +57,11 @@ class MultiLidarCalibrator(Node):
         self.base_to_ground_z = self.declare_parameter("base_to_ground_z", 0.0).value
         self.frame_count = self.declare_parameter("frame_count", 1).value
         self.runs_count = self.declare_parameter("runs_count", 1).value
+        self.crop_cloud = self.declare_parameter("crop_cloud", 25).value
 
         self.output_dir = (
             os.path.dirname(os.path.realpath(__file__))
-            + self.declare_parameter("out_dir", "/../output/").value
+            + self.declare_parameter("output_dir", "/../output/").value
         )
         self.pcd_in_dir = (
             os.path.dirname(os.path.realpath(__file__))
@@ -211,8 +212,10 @@ class MultiLidarCalibrator(Node):
                 self.distance_threshold,
                 self.ransac_n,
                 self.num_iterations,
+                self.crop_cloud,
             )
             calibration.compute_gicp_transformation(self.voxel_size, self.remove_ground_flag)
+            self.get_logger().info('%s -> %s: %f' % (calibration.source.name, calibration.target.name, calibration.reg_p2l.fitness))
             # Check the fitness score of the calibration
             if calibration.reg_p2l.fitness <= self.fitness_score_threshold:
                 problematic_lidars.append(source_lidar)
@@ -255,6 +258,7 @@ class MultiLidarCalibrator(Node):
                     self.distance_threshold,
                     self.ransac_n,
                     self.num_iterations,
+                    self.crop_cloud,
                 )
                 calibration.compute_gicp_transformation(self.voxel_size, self.remove_ground_flag)
                 if calibration.reg_p2l.fitness <= self.fitness_score_threshold:
@@ -308,19 +312,31 @@ class MultiLidarCalibrator(Node):
                         self.distance_threshold,
                         self.ransac_n,
                         self.num_iterations,
+                        self.crop_cloud,
                     )
+                    self.get_logger().info('target: %s' % (calibration.target.name))
+                    self.get_logger().info('source: %s' % (calibration.source.name))
                     calibration.compute_gicp_transformation(
                         self.voxel_size, self.remove_ground_flag
                     )
+                    self.get_logger().info('fitness score: %f' % (calibration.reg_p2l.fitness))
                     calibrations_tmp.append(calibration)
 
         # Repeat until only the target lidar is left
         while not_calibrated != [target_lidar]:
+            self.get_logger().info('target_LiDAR: %s' % (target_lidar.name))
             # Choose the calibration with the highest fitness score
+            self.get_logger().info('fitness score list')
+            for _ in calibrations_tmp:
+                self.get_logger().info('%s -> %s: %f' % (_.source.name, _.target.name, _.reg_p2l.fitness))
             max_fitness_index = np.argmax(
                 [calibration.reg_p2l.fitness for calibration in calibrations_tmp]
             )
+            self.get_logger().info('max_fitness_index: %f' % (max_fitness_index))
             calibration = calibrations_tmp[max_fitness_index]
+            self.get_logger().info('target: %s' % (calibration.target.name))
+            self.get_logger().info('source: %s' % (calibration.source.name))
+            
 
             # If the fitness score is below the threshold, exit with an error
             if calibration.reg_p2l.fitness <= self.fitness_score_threshold:
@@ -417,6 +433,7 @@ class MultiLidarCalibrator(Node):
                 self.rel_fitness,
                 self.rel_rmse,
                 self.max_iterations,
+                self.crop_cloud,
             )
             translation = target_lidar.translation
             calibration.compute_gicp_transformation(self.voxel_size, remove_ground_plane=False)
