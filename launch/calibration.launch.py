@@ -5,7 +5,7 @@ from launch_ros.actions import Node
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
-from launch.substitutions import Command, LaunchConfiguration
+from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
@@ -17,12 +17,12 @@ def generate_launch_description():
     )
 
     params_declare = DeclareLaunchArgument(
-        "params",
+        "parameter_file",
         default_value=parameter_file,
         description="Path to the ROS2 parameters file to use.",
     )
 
-    print("config_file_path : {}".format(parameter_file))
+    parameter_file_launch_config = LaunchConfiguration("parameter_file")
 
     return LaunchDescription(
         [
@@ -32,7 +32,7 @@ def generate_launch_description():
                 package="multi_lidar_calibrator",
                 executable="multi_lidar_calibrator",
                 name="multi_lidar_calibration_node",
-                parameters=[parameter_file],
+                parameters=[parameter_file_launch_config],
                 output="screen",
             ),
         ]
