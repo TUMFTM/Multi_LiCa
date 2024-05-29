@@ -215,7 +215,6 @@ class MultiLidarCalibrator(Node):
                 self.crop_cloud,
             )
             calibration.compute_gicp_transformation(self.voxel_size, self.remove_ground_flag)
-            self.get_logger().info('%s -> %s: %f' % (calibration.source.name, calibration.target.name, calibration.reg_p2l.fitness))
             # Check the fitness score of the calibration
             if calibration.reg_p2l.fitness <= self.fitness_score_threshold:
                 problematic_lidars.append(source_lidar)
@@ -314,29 +313,18 @@ class MultiLidarCalibrator(Node):
                         self.num_iterations,
                         self.crop_cloud,
                     )
-                    self.get_logger().info('target: %s' % (calibration.target.name))
-                    self.get_logger().info('source: %s' % (calibration.source.name))
                     calibration.compute_gicp_transformation(
                         self.voxel_size, self.remove_ground_flag
                     )
-                    self.get_logger().info('fitness score: %f' % (calibration.reg_p2l.fitness))
                     calibrations_tmp.append(calibration)
 
         # Repeat until only the target lidar is left
         while not_calibrated != [target_lidar]:
-            self.get_logger().info('target_LiDAR: %s' % (target_lidar.name))
             # Choose the calibration with the highest fitness score
-            self.get_logger().info('fitness score list')
-            for _ in calibrations_tmp:
-                self.get_logger().info('%s -> %s: %f' % (_.source.name, _.target.name, _.reg_p2l.fitness))
             max_fitness_index = np.argmax(
                 [calibration.reg_p2l.fitness for calibration in calibrations_tmp]
             )
-            self.get_logger().info('max_fitness_index: %f' % (max_fitness_index))
-            calibration = calibrations_tmp[max_fitness_index]
-            self.get_logger().info('target: %s' % (calibration.target.name))
-            self.get_logger().info('source: %s' % (calibration.source.name))
-            
+            calibration = calibrations_tmp[max_fitness_index]          
 
             # If the fitness score is below the threshold, exit with an error
             if calibration.reg_p2l.fitness <= self.fitness_score_threshold:
