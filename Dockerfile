@@ -59,6 +59,13 @@ WORKDIR /ros_ws
 
 COPY . /ros_ws/src/multi_lidar_calibration/
 
+RUN cd /ros_ws/src/multi_lidar_calibration/TEASER-plusplus && \
+    mkdir build && \
+    cd build && \
+    cmake -DTEASERPP_PYTHON_VERSION=3.10 .. && \
+    make teaserpp_python && \
+    cd python && pip install .
+
 RUN pip install --no-cache-dir --upgrade pip && \
   pip install --no-cache-dir -r src/multi_lidar_calibration/requirements.txt
 

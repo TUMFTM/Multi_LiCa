@@ -1,0 +1,3 @@
+[submodule "TEASER-plusplus"]
+	path = TEASER-plusplus
+	url = https://github.com/MIT-SPARK/TEASER-plusplus.git
