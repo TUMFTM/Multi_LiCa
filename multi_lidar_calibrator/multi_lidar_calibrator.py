@@ -13,7 +13,7 @@ from tf2_msgs.msg import TFMessage
 
 from .calibration.Calibration import *
 
-
+ 
 def get_transfrom(tf_msg: TFMessage, child_frame_id: str) -> Transform:
     """
     Extract the transform for a specific child frame from a TFMessage.
@@ -52,15 +52,16 @@ class MultiLidarCalibrator(Node):
         self.topic_names = self.declare_parameter("lidar_topics", ["lidar_1, lidar_2"]).value
         self.target_lidar = self.declare_parameter("target_frame_id", "lidar_1").value
         self.base_frame_id = self.declare_parameter("base_frame_id", "base_link").value
-        self.calibrate_target = self.declare_parameter("calibrate_target", True).value
-        self.calibrate_to_base = self.declare_parameter("calibrate_to_base", True).value
+        self.calibrate_target = self.declare_parameter("calibrate_target", False).value
+        self.calibrate_to_base = self.declare_parameter("calibrate_to_base", False).value
         self.base_to_ground_z = self.declare_parameter("base_to_ground_z", 0.0).value
         self.frame_count = self.declare_parameter("frame_count", 1).value
         self.runs_count = self.declare_parameter("runs_count", 1).value
+        self.crop_cloud = self.declare_parameter("crop_cloud", 25).value
 
         self.output_dir = (
             os.path.dirname(os.path.realpath(__file__))
-            + self.declare_parameter("out_dir", "/../output/").value
+            + self.declare_parameter("output_dir", "/../output/").value
         )
         if not os.path.exists(self.output_dir):
             os.makedirs(self.output_dir)
@@ -213,6 +214,7 @@ class MultiLidarCalibrator(Node):
                 self.distance_threshold,
                 self.ransac_n,
                 self.num_iterations,
+                self.crop_cloud,
             )
             calibration.compute_gicp_transformation(self.voxel_size, self.remove_ground_flag)
             # Check the fitness score of the calibration
@@ -257,6 +259,7 @@ class MultiLidarCalibrator(Node):
                     self.distance_threshold,
                     self.ransac_n,
                     self.num_iterations,
+                    self.crop_cloud,
                 )
                 calibration.compute_gicp_transformation(self.voxel_size, self.remove_ground_flag)
                 if calibration.reg_p2l.fitness <= self.fitness_score_threshold:
@@ -310,6 +313,7 @@ class MultiLidarCalibrator(Node):
                         self.distance_threshold,
                         self.ransac_n,
                         self.num_iterations,
+                        self.crop_cloud,
                     )
                     calibration.compute_gicp_transformation(
                         self.voxel_size, self.remove_ground_flag
@@ -322,7 +326,7 @@ class MultiLidarCalibrator(Node):
             max_fitness_index = np.argmax(
                 [calibration.reg_p2l.fitness for calibration in calibrations_tmp]
             )
-            calibration = calibrations_tmp[max_fitness_index]
+            calibration = calibrations_tmp[max_fitness_index]          
 
             # If the fitness score is below the threshold, exit with an error
             if calibration.reg_p2l.fitness <= self.fitness_score_threshold:
@@ -419,6 +423,7 @@ class MultiLidarCalibrator(Node):
                 self.rel_fitness,
                 self.rel_rmse,
                 self.max_iterations,
+                self.crop_cloud,
             )
             translation = target_lidar.translation
             calibration.compute_gicp_transformation(self.voxel_size, remove_ground_plane=False)
