@@ -15,9 +15,8 @@ Multi - LiDAR-to-LiDAR calibration framework for ROS 2 and non-ROS applications
 <h2>Introduction</h2>
 This project provides an extrinsic calibration framework for quickly calibrating multiple LiDAR sensors. It employs the Generalized Iterative Closest Point (GICP) algorithm for LiDAR-to-LiDAR extrinsic calibration and uses the RANdom SAmple Consensus (RANSAC) method to calibrate the pitch and z-distance to the ground of a single LiDAR, assuming other coordinates are known.  
   
-It has proven to be robust for different sensor setups and environments, nevertheless it still needs an initial guess.  
-We could achieve good results without any guess or absurd guesses of up to 5m of deviation between sensors and wrong rotations of up to 75°.  
-It should still be noted: The better the inital guess, the better the result (generally speaking).
+It has proven to be robust for different sensor setups and environments without the need of an initial guess.  
+We use a FPFH-based feature vector creation with an TEASER++ feature matching for the coarse alignment, which is used as initial guess for the GICP algorithm. 
 
 <h2>Overview</h2>
 <div align="center">
@@ -106,7 +105,7 @@ For the local build, you will need ROS 2 - humble, Python 3.10 with opend3d, sci
 
 - We provided a detailed parameter file with explanation with `config/params.yaml`
 
-- Configure `config/params.yaml` to fit your data. Depending on the application, you may need to specify the initial transformations for LiDARs, paths to .pcd files, or LiDAR topic names. You may also change GICP and RANSAC parameters.
+- Configure `config/params.yaml` to fit your data. Depending on the application, you may need to specify the LiDARs, paths to .pcd files, or LiDAR topic names. You may also change GICP and RANSAC parameters.
 
 - In addition to LiDAR-to-LiDAR calibration, you can perform target LiDAR-to-ground/base calibration if your x,y translation and roll, yaw rotation are precisely known.  
   If you are using to-base calibration, you may choose a URDF file to save the calibration so that it can be directly used in your ROS robot-state-publisher.
@@ -123,11 +122,14 @@ It will open a window and will display three pointclouds and their initial trans
 <h2> Other OSS Calibration Frameworks </h2>
 
 - [GMMCalib](https://github.com/TUMFTM/GMMCalib)
-
 - [OpenCalib](https://github.com/PJLab-ADG/SensorsCalibration/tree/master)
-
 - [LL-Calib](https://github.com/autocore-ai/calibration_tools/tree/main/lidar-lidar-calib) 
-
-- [Multi LiDAR Calibrator](https://github.com/Ridecell/Autoware/tree/master/ros/src/sensing/fusion/packages/multi_lidar_calibrator)
-
+- [Multi LiDAR Calibrator ROS 1](https://github.com/Ridecell/Autoware/tree/master/ros/src/sensing/fusion/packages/multi_lidar_calibrator)
+- [Multi LiDAR Calibrator ROS 2](https://github.com/pixmoving-moveit/multi_lidar_calibration_ros2)
 - [mlcc](https://github.com/hku-mars/mlcc)
+- [T-FAC](https://github.com/AlienCat-K/LiDAR-Automatic-Calibration)
+- [AutoL2LCalib](https://github.com/JunhaAgu/AutoL2LCalib)
+- [Multi LiDAR Calibration](https://github.com/yinwu33/multi_lidar_calibration)
+- [Multi LiDARs CALIBRATE](https://github.com/GDUT-Kyle/MULTI_LIDARs_CALIBRATE)
+- [multi lidar calibration](https://github.com/liuzm-slam/multi_lidar_calibration)
+- [Appearance Calibration](https://github.com/ram-lab/lidar_appearance_calibration)
