@@ -386,12 +386,6 @@ class Calibration:
             + " to "
             + self.target.name
             + " calibration\n"
-            + "initial xyz = "
-            + self.initial_transformation.translation.__str__()
-            + "\n"
-            + "initial rpy = "
-            + self.initial_transformation.rotation.__str__(degrees)
-            + "\n"
             + "calibrated xyz = "
             + self.calibrated_transformation.translation.__str__()
             + "\n"
