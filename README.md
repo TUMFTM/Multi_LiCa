@@ -12,6 +12,23 @@ Multi - LiDAR-to-LiDAR calibration framework for ROS 2 and non-ROS applications
 
 </div>
 
+<h2>How to use with our stack</h2>
+
+1. Record a ros2 bag on the tractor/subaru.
+   - Preferably use `jarvis tractor test -a -t av7 -m atl-testing` to run the stack.
+   - SSH into the compute in another window and use this command to record a ros2 bag: `tractor record --config raw_sensor_data --location atl --name calibration`
+   - Transfer the bags to your local machine and close the SSH connection to the tractor.
+2. On another terminal go the Multi-LiCa folder after cloning it, and use the following commands to run the docker.
+   - `./docker/build_docker.sh` to build the docker. You will need to rebuild the docker everytime whenever changes are made.
+   - `./docker/run_docker.sh` to run the docker. The docker after launching would display `waiting for pointcloud messages`.
+3. On a docker terminal on the local machine, play the recorded bag in `step 1.`.
+4. The Multi-LiCa package will show an `open3d` visualization window, showing the before-calibration state.
+5. Press `q` to proceed onto the optimizing process. This will momentarily close the `visualization` window. The calibrated values are displayed on the Multi-LiCa docker terminal.
+6. If the bag recorded is small, replay the ros2 bag as the calibrator in the current state does two lidar calibrations at a time eg: `left -> center` and `right -> center`. Repeat `step 5.`.
+7. Make sure to check the `open3d` visualization after the calibration is done for each pair to ensure it looks correct. Press `q` to move onto the next step.
+8. Use the values obtained from the calibrator to edit `sensors_config.yaml`.
+9. To change `params` for the calibrator edit the `config/params.yaml` file and repeat `step 2.`
+
 <h2>Introduction</h2>
 This project provides an extrinsic calibration framework for quickly calibrating multiple LiDAR sensors. It employs the Generalized Iterative Closest Point (GICP) algorithm for LiDAR-to-LiDAR extrinsic calibration and uses the RANdom SAmple Consensus (RANSAC) method to calibrate the pitch and z-distance to the ground of a single LiDAR, assuming other coordinates are known.  
   
