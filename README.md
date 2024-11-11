@@ -119,6 +119,20 @@ For the local build, you will need ROS 2 - humble, Python 3.10 with opend3d, sci
 On default, the tool will launch a demo with data from [OpenCalib](https://github.com/PJLab-ADG/SensorsCalibration/tree/master).  
 It will open a window and will display three pointclouds and their initial transforms. You can inspect the files in the interactive window. After closing the window (press Q), the tool will calculate the transformations ans will print the results to the terminal, write them to the output directory and will display a windows with the transformed pointclouds.
 
+<h2> Citation </h2>
+
+```bibtex
+@article{kulmermfi2024,
+  author    = {Kulmer, Dominik and Tahiraj, Ilir and Chumak, Andrii and Lienkamp, Markus},
+  title     = {{Multi-LiCa: A Motion- and Targetless Multi - LiDAR-to-LiDAR Calibration Framework}},
+  journal   = {2024 IEEE International Conference on Multisensor Fusion and Integration for Intelligent Systems (MFI)},
+  pages     = {1-7},
+  doi       = {10.1109/MFI62651.2024.10705773},
+  year      = {2024},
+  codeurl   = {https://github.com/TUMFTM/Multi_LiCa},
+}
+```
+
 <h2> Other OSS Calibration Frameworks </h2>
 
 - [GMMCalib](https://github.com/TUMFTM/GMMCalib)
