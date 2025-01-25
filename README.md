@@ -7,6 +7,8 @@ Multi - LiDAR-to-LiDAR calibration framework for ROS 2 and non-ROS applications
 [![Linux](https://img.shields.io/badge/os-linux-blue.svg)](https://www.linux.org/)
 [![Docker](https://badgen.net/badge/icon/docker?icon=docker&label)](https://www.docker.com/)
 [![ROS2humble](https://img.shields.io/badge/ros2-humble-blue.svg)](https://docs.ros.org/en/humble/index.html)
+[![arXiv](https://img.shields.io/badge/arXiv-1234.56789-b31b1b.svg)](https://arxiv.org/abs/2501.11088)
+[![DOI:10.1109/MFI62651.2024.10705773](http://img.shields.io/badge/DOI-10.1109/MFI62651.2024.10705773-00629B.svg)](https://doi.org/10.1109/MFI62651.2024.10705773)
 
 <img src="doc/img/calibration_results.png" width="1000px">
 
