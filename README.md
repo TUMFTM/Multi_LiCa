@@ -42,6 +42,8 @@ For the local build, you will need ROS 2 - humble, Python 3.10 with opend3d, sci
 
 <h2>Installation and Usage</h2>
 
+We use submodules, therefore, use `git clone --recurse-submodules git@github.com:TUMFTM/Multi_LiCa.git`
+
 <h3>🐋 Docker Environment</h3>
 
 1. Build the Docker image:
@@ -71,7 +73,7 @@ For the local build, you will need ROS 2 - humble, Python 3.10 with opend3d, sci
 3. Clone the repository:
 
    ```
-   git clone git@github.com:TUMFTM/Multi_LiCa.git
+   git clone --recurse-submodules git@github.com:TUMFTM/Multi_LiCa.git
    ```
 
 4. Install dependencies:
