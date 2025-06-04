@@ -2,4 +2,4 @@ open3d
 scipy
 ros2_numpy
 pandas
-setuptools==58.2
+setuptools==78.1.1
