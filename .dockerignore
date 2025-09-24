@@ -1,0 +1,7 @@
+**/build
+**/_skbuild
+**/*.egg-info
+**/__pycache__
+**/.pytest_cache
+**/.ninja*
+**/CMakeCache.txt
