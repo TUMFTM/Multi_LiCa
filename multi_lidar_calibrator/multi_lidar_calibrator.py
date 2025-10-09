@@ -337,6 +337,13 @@ class MultiLidarCalibrator(Node):
                 )
                 exit(1)
 
+            if calibration.source != target_lidar and calibration.target != target_lidar:
+                self.get_logger().info(
+                    f"Neither source ({calibration.source.name}) nor target ({calibration.target.name}) is the target lidar {target_lidar.name}, removing this calibration and trying again..."
+                )
+                calibrations_tmp.pop(max_fitness_index)
+                continue
+
             # Don't transform the target lidar
             if calibration.source == target_lidar:
                 calibration.source, calibration.target = calibration.target, calibration.source

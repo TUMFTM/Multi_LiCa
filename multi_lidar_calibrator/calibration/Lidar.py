@@ -28,6 +28,7 @@ class Lidar:
         self.tf_matrix = TransformationMatrix(translation, rotation)
         self.pcd = None
         self.pcd_transformed = None
+        self.calib_tf_matrix = None
 
     @classmethod
     def from_transform(cls, name: str, transform: Transform):

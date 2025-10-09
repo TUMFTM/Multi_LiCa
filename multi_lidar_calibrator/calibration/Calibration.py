@@ -50,11 +50,26 @@ def visualize_calibration(lidar_list: list[Lidar], transformed=True, only_paint=
     vis.get_render_option().point_size = 2
 
     if transformed:
-        for lidar in lidar_list:
+        for lidar, color in zip(lidar_list, colors):
+            lidar_coordinate_frame = o3d.geometry.TriangleMesh.create_coordinate_frame()
+            lidar_coordinate_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.2).paint_uniform_color(color)
+            if lidar.calib_tf_matrix is not None:
+                lidar_coordinate_frame.transform(lidar.calib_tf_matrix.matrix)
+                lidar_coordinate_sphere.transform(lidar.calib_tf_matrix.matrix)
+            vis.add_geometry(lidar_coordinate_sphere)
+            vis.add_geometry(lidar_coordinate_frame)
             vis.add_geometry(lidar.pcd_transformed)
     else:
-        for lidar in lidar_list:
-            vis.add_geometry(lidar.pcd)
+        for lidar, color in zip(lidar_list, colors):
+            lidar_coordinate_frame = o3d.geometry.TriangleMesh.create_coordinate_frame()
+            lidar_coordinate_sphere = o3d.geometry.TriangleMesh.create_sphere(radius=0.2).paint_uniform_color(color)
+            lidar_coordinate_frame.transform(lidar.tf_matrix.matrix)
+            lidar_coordinate_sphere.transform(lidar.tf_matrix.matrix)
+            vis.add_geometry(lidar_coordinate_sphere)
+            vis.add_geometry(lidar_coordinate_frame)
+            pcd = o3d.geometry.PointCloud(lidar.pcd)
+            pcd.transform(lidar.tf_matrix.matrix)
+            vis.add_geometry(pcd)
 
     vis.run()
 
@@ -148,31 +163,30 @@ class Calibration:
         transformation_matrix = (
             np.linalg.inv(self.target.tf_matrix.matrix) @ self.source.tf_matrix.matrix
         )
-        self.initial_transformation = TransformationMatrix.from_matrix(transformation_matrix)
-
         if self.source.pcd is None:
             raise Exception("no source point cloud")
         if self.target.pcd is None:
             raise Exception("no target point cloud")
 
         # Create copies of the source and target point clouds
-        source_pcd = o3d.geometry.PointCloud(self.source.pcd.transform(transformation_matrix))
+        source_pcd = o3d.geometry.PointCloud(self.source.pcd)
+        source_pcd.transform(transformation_matrix)
         target_pcd = o3d.geometry.PointCloud(self.target.pcd)
 
-        method = 'TEASER'
+        method = 'TEASER' # 'FPFH' # 'RANSAC' # 'TEASER' # 'None'
         if method == 'FPFH':
             fpfh_voxel_size = 0.5
-            source_fpfh = self.preprocess_point_cloud(source_pcd, fpfh_voxel_size)
-            target_fpfh = self.preprocess_point_cloud(target_pcd, fpfh_voxel_size)
+            src_down, source_fpfh = self.preprocess_point_cloud(source_pcd, fpfh_voxel_size)
+            tgt_down, target_fpfh = self.preprocess_point_cloud(target_pcd, fpfh_voxel_size)
             distance_threshold = fpfh_voxel_size * 10
             reg_fpfh = o3d.pipelines.registration.registration_fgr_based_on_feature_matching(
-                source_pcd, target_pcd, source_fpfh, target_fpfh,
+                src_down, tgt_down, source_fpfh, target_fpfh,
                 o3d.pipelines.registration.FastGlobalRegistrationOption(
                     use_absolute_scale=True,
                     maximum_correspondence_distance=distance_threshold))
             print("FPFH Trafo:")
             print(reg_fpfh.transformation)
-            self.initial_transformation = TransformationMatrix.from_matrix(reg_fpfh.transformation)
+            self.initial_transformation = TransformationMatrix.from_matrix(reg_fpfh.transformation @ transformation_matrix)
         
         elif method == 'RANSAC':
             voxel_size = 0.35
@@ -180,12 +194,14 @@ class Calibration:
             distance_threshold = voxel_size * 20
             transformations = [self.run_ransac_registration(source_pcd, target_pcd, voxel_size, distance_threshold) for _ in range(num_iterations)]
             median_trans = self.median_transformation(transformations)
-            self.initial_transformation = TransformationMatrix.from_matrix(median_trans)
+            self.initial_transformation = TransformationMatrix.from_matrix(median_trans @ transformation_matrix)
 
         elif method == 'TEASER':
             voxel_size = 0.35
             teaser_transformation = self.teaser_initial_registration(source_pcd, target_pcd, voxel_size)
-            self.initial_transformation = TransformationMatrix.from_matrix(teaser_transformation)
+            self.initial_transformation = TransformationMatrix.from_matrix(teaser_transformation @ transformation_matrix )
+        else:
+            self.initial_transformation = TransformationMatrix.from_matrix(transformation_matrix)
         return self.initial_transformation
     
     def teaser_initial_registration(self, source_pcd, target_pcd, voxel_size):
