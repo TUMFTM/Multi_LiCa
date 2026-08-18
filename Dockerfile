@@ -39,6 +39,7 @@ RUN apt-get update && apt-get install -y -q --no-install-recommends \
     git \
     cmake \
     make \
+    libeigen3-dev \
     apt-utils
 
 # ROS 2
@@ -59,15 +60,19 @@ WORKDIR /ros_ws
 
 COPY . /ros_ws/src/multi_lidar_calibration/
 
-RUN cd /ros_ws/src/multi_lidar_calibration/TEASER-plusplus && \
-    mkdir build && \
-    cd build && \
-    cmake -DTEASERPP_PYTHON_VERSION=3.10 .. && \
-    make teaserpp_python && \
-    cd python && pip install .
-
-RUN pip install --no-cache-dir --upgrade pip && \
-  pip install --no-cache-dir -r src/multi_lidar_calibration/requirements.txt
+ARG TEASERPP_PMC_PIN=a2dfd612a501bca83c47206255dbbff619481f97
+ARG TEASERPP_TINYPLY_PIN=c9bb690dfe5e9105961e9e28120c48c9ae084bc6
+RUN git clone https://github.com/jingnanshi/pmc.git /tmp/teaserpp-pmc && \
+    git -C /tmp/teaserpp-pmc checkout --detach "$TEASERPP_PMC_PIN" && \
+    git clone https://github.com/ddiakopoulos/tinyply.git /tmp/teaserpp-tinyply && \
+    git -C /tmp/teaserpp-tinyply checkout --detach "$TEASERPP_TINYPLY_PIN" && \
+    python3 -m pip install --no-cache-dir --upgrade pip && \
+    CMAKE_ARGS="-DFETCHCONTENT_SOURCE_DIR_PMC=/tmp/teaserpp-pmc -DFETCHCONTENT_SOURCE_DIR_TINYPLY=/tmp/teaserpp-tinyply" \
+      python3 -m pip install --no-cache-dir \
+      ./src/multi_lidar_calibration/TEASER-plusplus && \
+    python3 -m pip install --no-cache-dir \
+      -r src/multi_lidar_calibration/requirements.txt && \
+    rm -rf /tmp/teaserpp-pmc /tmp/teaserpp-tinyply
 
 RUN /bin/bash -c '. /opt/ros/$ROS_DISTRO/setup.bash && \
     colcon build --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release --packages-up-to multi_lidar_calibrator'
